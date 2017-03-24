@@ -1,0 +1,18 @@
+probes:
+  - name: mqtt broker SSL
+    broker_url: ssl://mqtt.example.net:8883
+    topic: internal/monitoring/ssl/exporter
+    client_prefix: test-client-1
+    username: test
+    password: xxx
+    messages: 10
+    interval: 30s
+
+  - name: mqtt broker NONSSL
+    broker_url: tcp://mqtt.example.net:1883
+    topic: internal/monitoring/nonssl/exporter
+    client_prefix: test-client-2
+    username: test
+    password: xxx
+    messages: 10
+    interval: 30s
