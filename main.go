@@ -95,7 +95,6 @@ func startProbe(probeConfig *ProbeConfig) {
 	testTimeout := 10 * time.Second
 	qos := byte(0)
 	t0 := time.Now()
-	logger.Printf("foo")
 
 	probeStarted.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 	defer func() {
