@@ -35,11 +35,11 @@ $ ./mqtt_blackbox_exporter -config.file config.yaml
 Using Docker:
 
 ```
-docker run --rm -it -p 9142:9142 -v ${PWD}/:/data/ inovex/mqtt_blackbox_exporter:latest -config.file /data/config.yaml
+docker run --rm -it -p 9214:9214 -v ${PWD}/:/data/ inovex/mqtt_blackbox_exporter:latest -config.file /data/config.yaml
 ```
 
 ```
-$ curl -s http://127.0.0.1:9142/metrics
+$ curl -s http://127.0.0.1:9214/metrics
 ...
 # HELP probe_mqtt_completed Number of completed probes.
 # TYPE probe_mqtt_completed counter
