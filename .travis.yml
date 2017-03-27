@@ -1,0 +1,25 @@
+language: go
+
+go:
+  - 1.8.x
+
+services:
+  - docker
+
+before_install:
+  - set -e
+
+install:
+  - go get
+
+script:
+  - make build
+
+after_success:
+  - if [[ "${TRAVIS_BRANCH?}" == "master" && "${TRAVIS_PULL_REQUEST?}" == "false" ]]; then
+      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}";
+      commit_id="${TRAVIS_COMMIT:0:7}";
+      docker build -t "${DOCKER_BUILD_IMAGE?}" -t "${DOCKER_BUILD_IMAGE?}:${commit_id?}" .;
+      docker push "${DOCKER_BUILD_IMAGE?}";
+      docker push "${DOCKER_BUILD_IMAGE?}:${commit_id?}";
+    fi

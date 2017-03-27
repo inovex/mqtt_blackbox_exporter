@@ -5,11 +5,10 @@ TARGET := $(shell echo $${PWD\#\#*/})
 .DEFAULT_GOAL: $(TARGET)
 
 # These will be provided to the target
-VERSION := 0.9.0
 BUILD := `git rev-parse HEAD`
 
 # Use linker flags to provide version/build settings to the target
-LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
+LDFLAGS=-ldflags "-X=main.Build=$(BUILD)"
 
 # go source files, ignore vendor directory
 SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
@@ -19,7 +18,6 @@ SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 all: install
 
 $(TARGET): $(SRC)
-	@go get
 	@go build $(LDFLAGS) -o $(TARGET)
 
 build: $(TARGET)
@@ -47,3 +45,12 @@ check:
 
 run: install
 	@$(TARGET)
+
+vendor-deps:
+	@echo ">> Fetching dependencies"
+	go get github.com/rancher/trash
+
+vendor: vendor-deps
+	rm -r vendor/
+	${GOPATH}/bin/trash -u
+	${GOPATH}/bin/trash

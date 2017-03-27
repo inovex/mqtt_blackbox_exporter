@@ -76,7 +76,7 @@ var (
 	logger = log.New(os.Stderr, "", log.Lmicroseconds|log.Ltime|log.Lshortfile)
 
 	configFile    = flag.String("config.file", "config.yaml", "Exporter configuration file.")
-	listenAddress = flag.String("web.listen-address", ":9142", "The address to listen on for HTTP requests.")
+	listenAddress = flag.String("web.listen-address", ":9214", "The address to listen on for HTTP requests.")
 )
 
 func init() {
