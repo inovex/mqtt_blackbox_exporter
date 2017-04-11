@@ -9,9 +9,6 @@ services:
 before_install:
   - set -e
 
-install:
-  - go get
-
 script:
   - make build
 
