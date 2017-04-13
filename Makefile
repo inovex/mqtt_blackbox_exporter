@@ -13,7 +13,7 @@ LDFLAGS=-ldflags "-X=main.build=$(BUILD)"
 # go source files, ignore vendor directory
 SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
-.PHONY: all build clean install uninstall fmt simplify check run
+.PHONY: all build clean install uninstall fmt simplify check run test
 
 all: install
 
@@ -42,6 +42,9 @@ check:
 	@test -z $(shell gofmt -l main.go | tee /dev/stderr) || echo "[WARN] Fix formatting issues with 'make fmt'"
 	@for d in $$(go list ./... | grep -v /vendor/); do golint $${d}; done
 	@go tool vet ${SRC}
+
+test:
+	./test/run-integration-tests.sh
 
 run: install
 	@$(TARGET)

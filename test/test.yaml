@@ -1,0 +1,14 @@
+probes:
+  - name: mqtt broker SSL
+    broker_url: ssl://broker.mqttdashboard.com:8883
+    topic: internal/monitoring/ssl/exporter
+    client_prefix: test-client-1
+    messages: 10
+    interval: 30s
+
+  - name: mqtt broker NONSSL
+    broker_url: tcp://test.mosquitto.org:1883
+    topic: internal/monitoring/nonssl/exporter
+    client_prefix: test-client-2
+    messages: 10
+    interval: 30s
