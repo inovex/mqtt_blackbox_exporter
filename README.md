@@ -41,32 +41,32 @@ docker run --rm -it -p 9214:9214 -v ${PWD}/:/data/ inovex/mqtt_blackbox_exporter
 ```
 $ curl -s http://127.0.0.1:9214/metrics
 ...
-# HELP probe_mqtt_completed Number of completed probes.
-# TYPE probe_mqtt_completed counter
-probe_mqtt_completed{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
+# HELP probe_mqtt_completed_total Number of completed probes.
+# TYPE probe_mqtt_completed_total counter
+probe_mqtt_completed_total{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
 
 ...
 
-# HELP probe_mqtt_duration Time taken to execute probe.
-# TYPE probe_mqtt_duration histogram
-probe_mqtt_duration_bucket{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL",le="0.005"} 0
-probe_mqtt_duration_bucket{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL",le="0.01"} 0
-probe_mqtt_duration_sum{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 50.09346619300002
-probe_mqtt_duration_count{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
+# HELP probe_mqtt_duration_seconds Time taken to execute probe.
+# TYPE probe_mqtt_duration_seconds histogram
+probe_mqtt_duration_seconds_bucket{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL",le="0.005"} 0
+probe_mqtt_duration_seconds_bucket{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL",le="0.01"} 0
+probe_mqtt_duration_seconds_sum{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 50.09346619300002
+probe_mqtt_duration_seconds_count{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
 ...
 
-# HELP probe_mqtt_messages_published Number of published messages.
-# TYPE probe_mqtt_messages_published counter
-probe_mqtt_messages_published{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 640
+# HELP probe_mqtt_messages_published_total Number of published messages.
+# TYPE probe_mqtt_messages_published_total counter
+probe_mqtt_messages_published_total{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 640
 ...
 
-# HELP probe_mqtt_messages_received Number of received messages.
-# TYPE probe_mqtt_messages_received counter
-probe_mqtt_messages_received{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 640
+# HELP probe_mqtt_messages_received_total Number of received messages.
+# TYPE probe_mqtt_messages_received_total counter
+probe_mqtt_messages_received_total{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 640
 ...
 
-# HELP probe_mqtt_started Number of started probes.
-# TYPE probe_mqtt_started counter
-probe_mqtt_started{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
+# HELP probe_mqtt_started_total Number of started probes.
+# TYPE probe_mqtt_started_total counter
+probe_mqtt_started_total{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
 ...
 ```
