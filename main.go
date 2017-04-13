@@ -33,43 +33,43 @@ var build string
 var (
 	messagesPublished = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_messages_published",
+			Name: "probe_mqtt_messages_published_total",
 			Help: "Number of published messages.",
 		}, []string{"name", "broker"})
 
 	messagesReceived = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_messages_received",
+			Name: "probe_mqtt_messages_received_total",
 			Help: "Number of received messages.",
 		}, []string{"name", "broker"})
 
 	timedoutTests = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_timeouts",
+			Name: "probe_mqtt_timeouts_total",
 			Help: "Number of timed out tests.",
 		}, []string{"name", "broker"})
 
 	probeStarted = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_started",
+			Name: "probe_mqtt_started_total",
 			Help: "Number of started probes.",
 		}, []string{"name", "broker"})
 
 	probeCompleted = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_completed",
+			Name: "probe_mqtt_completed_total",
 			Help: "Number of completed probes.",
 		}, []string{"name", "broker"})
 
 	errors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "probe_mqtt_errors",
+			Name: "probe_mqtt_errors_total",
 			Help: "Number of errors occured during test execution.",
 		}, []string{"name", "broker"})
 
 	probeDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name: "probe_mqtt_duration",
+			Name: "probe_mqtt_duration_seconds",
 			Help: "Time taken to execute probe.",
 		}, []string{"name", "broker"})
 
