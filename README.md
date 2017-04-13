@@ -1,4 +1,7 @@
-# MQTT Blackbox Exporter
+# MQTT Blackbox Exporter [![Build Status](https://travis-ci.org/inovex/mqtt_blackbox_exporter.png?branch=master)](https://travis-ci.org/inovex/mqtt_blackbox_exporter)
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/inovex/mqtt_blackbox_exporter)](https://goreportcard.com/badge/github.com/inovex/mqtt_blackbox_exporter)
+[![Docker Pulls](https://img.shields.io/docker/pulls/inovex/mqtt_blackbox_exporter.svg?maxAge=604800)](https://img.shields.io/docker/pulls/inovex/mqtt_blackbox_exporter.svg?maxAge=604800)
 
 Tests MQTT messaging roundtrips (publish/subscribe on same topic).
 
