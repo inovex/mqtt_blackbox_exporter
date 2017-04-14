@@ -64,7 +64,7 @@ var (
 	errors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "probe_mqtt_errors_total",
-			Help: "Number of errors occured during test execution.",
+			Help: "Number of errors occurred during test execution.",
 		}, []string{"name", "broker"})
 
 	probeDuration = prometheus.NewHistogramVec(
