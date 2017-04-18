@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-type Config struct {
-	Probes []ProbeConfig `yaml:"probes"`
+type config struct {
+	Probes []probeConfig `yaml:"probes"`
 }
 
-type ProbeConfig struct {
+type probeConfig struct {
 	Name         string        `yaml:"name"`
 	Broker       string        `yaml:"broker_url"`
 	Topic        string        `yaml:"topic"`
@@ -64,7 +64,7 @@ var (
 	errors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "probe_mqtt_errors_total",
-			Help: "Number of errors occured during test execution.",
+			Help: "Number of errors occurred during test execution.",
 		}, []string{"name", "broker"})
 
 	probeDuration = prometheus.NewHistogramVec(
@@ -90,7 +90,7 @@ func init() {
 	prometheus.MustRegister(errors)
 }
 
-func startProbe(probeConfig *ProbeConfig) {
+func startProbe(probeConfig *probeConfig) {
 	num := probeConfig.Messages
 	testTimeout := 10 * time.Second
 	qos := byte(0)
@@ -168,7 +168,7 @@ func main() {
 		logger.Fatalf("Error reading config file: %s", err)
 	}
 
-	config := Config{}
+	config := config{}
 
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
@@ -183,7 +183,7 @@ func main() {
 		if delay == 0 {
 			delay = 60 * time.Second
 		}
-		go func(probeConfig ProbeConfig) {
+		go func(probeConfig probeConfig) {
 			for {
 				startProbe(&probeConfig)
 				time.Sleep(delay)
