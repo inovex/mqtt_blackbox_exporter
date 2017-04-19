@@ -5,7 +5,7 @@ TARGET := $(shell echo $${PWD\#\#*/})
 .DEFAULT_GOAL: $(TARGET)
 
 # These will be provided to the target
-BUILD := `git rev-parse HEAD`
+BUILD := "`cat VERSION|tr -d '\n'`-`date +%Y%m%d-%H%M%S`+`git rev-parse --short HEAD`"
 
 # Use linker flags to provide version/build settings to the target
 LDFLAGS=-ldflags "-X=main.build=$(BUILD)"

@@ -175,7 +175,7 @@ func main() {
 		logger.Fatalf("Error parsing config file: %s", err)
 	}
 
-	logger.Printf("Starting mqtt_blackbox_exporter (build %s)\n", build)
+	logger.Printf("Starting mqtt_blackbox_exporter (build: %s)\n", build)
 
 	for _, probe := range config.Probes {
 
