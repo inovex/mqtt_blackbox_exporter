@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"os"
 	"time"
-    "crypto/tls"
-    "crypto/x509"
+	"crypto/tls"
+	"crypto/x509"
 )
 
 type config struct {
@@ -104,9 +104,9 @@ func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
 		certpool.AppendCertsFromPEM(pemCerts)
 	}
 
-    // Import client certificate/key pair
-    // If you want the chain certs to be sent to the server, concatenate the leaf,
-    //  intermediate and root into the ClientCert file
+	// Import client certificate/key pair
+	// If you want the chain certs to be sent to the server, concatenate the leaf,
+	//  intermediate and root into the ClientCert file
 	cert, err := tls.LoadX509KeyPair(probeConfig.ClientCert, probeConfig.ClientKey)
 	if err != nil {
 		return &tls.Config{}
