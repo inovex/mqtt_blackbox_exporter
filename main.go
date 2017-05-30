@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -11,8 +13,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"crypto/tls"
-	"crypto/x509"
 )
 
 type config struct {
@@ -146,7 +146,7 @@ func startProbe(probeConfig *probeConfig) {
 		logger.Print(error)
 	}
 
-    tlsconfig := NewTlsConfig(probeConfig)
+	tlsconfig := NewTlsConfig(probeConfig)
 
 	publisherOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-p", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).SetTLSConfig(tlsconfig).AddBroker(probeConfig.Broker)
 
