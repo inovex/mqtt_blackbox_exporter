@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -24,6 +26,9 @@ type probeConfig struct {
 	ClientPrefix string        `yaml:"client_prefix"`
 	Username     string        `yaml:"username"`
 	Password     string        `yaml:"password"`
+	ClientCert   string        `yaml:"client_cert"`
+	ClientKey    string        `yaml:"client_key"`
+	CAChain      string        `yaml:"ca_chain"`
 	Messages     int           `yaml:"messages"`
 	TestInterval time.Duration `yaml:"interval"`
 }
@@ -90,6 +95,39 @@ func init() {
 	prometheus.MustRegister(errors)
 }
 
+// Stolen from https://github.com/shoenig/go-mqtt/blob/master/samples/ssl.go
+func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
+	// Import trusted certificates from CAChain - purely for verification - not sent to TLS server
+	certpool := x509.NewCertPool()
+	pemCerts, err := ioutil.ReadFile(probeConfig.CAChain)
+	if err == nil {
+		certpool.AppendCertsFromPEM(pemCerts)
+	}
+
+	// Import client certificate/key pair
+	// If you want the chain certs to be sent to the server, concatenate the leaf,
+	//  intermediate and root into the ClientCert file
+	cert, err := tls.LoadX509KeyPair(probeConfig.ClientCert, probeConfig.ClientKey)
+	if err != nil {
+		return &tls.Config{}
+	}
+
+	// Create tls.Config with desired tls properties
+	return &tls.Config{
+		// RootCAs = certs used to verify server cert.
+		RootCAs: certpool,
+		// ClientAuth = whether to request cert from server.
+		// Since the server is set up for SSL, this happens
+		// anyways.
+		ClientAuth: tls.NoClientCert,
+		// InsecureSkipVerify = verify that cert contents
+		// match server. IP matches what is in cert etc.
+		InsecureSkipVerify: false,
+		// Certificates = list of certs client sends to server.
+		Certificates: []tls.Certificate{cert},
+	}
+}
+
 func startProbe(probeConfig *probeConfig) {
 	num := probeConfig.Messages
 	testTimeout := 10 * time.Second
@@ -108,9 +146,11 @@ func startProbe(probeConfig *probeConfig) {
 		logger.Print(error)
 	}
 
-	publisherOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-p", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).AddBroker(probeConfig.Broker)
+	tlsconfig := NewTlsConfig(probeConfig)
 
-	subscriberOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-s", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).AddBroker(probeConfig.Broker)
+	publisherOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-p", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).SetTLSConfig(tlsconfig).AddBroker(probeConfig.Broker)
+
+	subscriberOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-s", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).SetTLSConfig(tlsconfig).AddBroker(probeConfig.Broker)
 
 	subscriberOptions.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
 		queue <- [2]string{msg.Topic(), string(msg.Payload())}
