@@ -9,7 +9,7 @@ Tests MQTT messaging roundtrips (publish/subscribe on same topic).
 Definition of roundtrip:
 
 - start subscriber on $topic
-- start publisher on $topc
+- start publisher on $topic
 - publish $messages on $topic
 - receive $message on $topic
 
