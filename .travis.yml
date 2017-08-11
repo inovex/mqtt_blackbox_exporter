@@ -17,7 +17,7 @@ script:
 
 after_success:
   - |
-    env | grep TRAVIS_;
+    set | grep TRAVIS_;
     exit 0
     [[ (-z "${TRAVIS_TAG?}" && "${TRAVIS_BRANCH?}" != master) || "${TRAVIS_PULL_REQUEST?}" == "true" ]] && exit 0;
     docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}";
