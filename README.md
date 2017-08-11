@@ -1,4 +1,4 @@
-# MQTT Blackbox Exporter 
+# MQTT Blackbox Exporter
 
 [![Build Status](https://travis-ci.org/inovex/mqtt_blackbox_exporter.png?branch=master)](https://travis-ci.org/inovex/mqtt_blackbox_exporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/inovex/mqtt_blackbox_exporter)](https://goreportcard.com/report/github.com/inovex/mqtt_blackbox_exporter)
@@ -22,7 +22,13 @@ $ cd ${GOPATH}/src/github.com/inovex/mqtt_blackbox_exporter/
 $ make
 ```
 
-This will build the exporter and installs it to your GOPATH/bin directory.
+This will build the mqtt stresser for all target platforms and write them to the ``build/`` directory.
+
+Binaries are provided on Github, see https://github.com/inovex/mqtt_blackbox_exporter.
+
+## Install
+
+Place the binary somewhere in a ``PATH`` directory and make it executable (``chmod +x mqtt-stresser``).
 
 ## Configure
 
