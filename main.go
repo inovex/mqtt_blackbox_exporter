@@ -85,11 +85,11 @@ var (
 )
 
 func init() {
+	prometheus.MustRegister(probeStarted)
+	prometheus.MustRegister(probeDuration)
+	prometheus.MustRegister(probeCompleted)
 	prometheus.MustRegister(messagesPublished)
 	prometheus.MustRegister(messagesReceived)
-	prometheus.MustRegister(probeStarted)
-	prometheus.MustRegister(probeCompleted)
-	prometheus.MustRegister(probeDuration)
 
 	prometheus.MustRegister(timedoutTests)
 	prometheus.MustRegister(errors)
@@ -134,6 +134,13 @@ func startProbe(probeConfig *probeConfig) {
 	qos := byte(0)
 	t0 := time.Now()
 
+	// Initialize optional metrics with initial values to have them present from the beginning
+	messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Add(0)
+	messagesReceived.WithLabelValues(probeConfig.Name, probeConfig.Broker).Add(0)
+	errors.WithLabelValues(probeConfig.Name, probeConfig.Broker).Add(0)
+	timedoutTests.WithLabelValues(probeConfig.Name, probeConfig.Broker).Add(0)
+
+	// Starting to fill metric vectors with meaningful values
 	probeStarted.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 	defer func() {
 		probeCompleted.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
