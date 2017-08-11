@@ -17,18 +17,17 @@ script:
 
 after_success:
   - |
-    set | grep TRAVIS_;
-    exit 0
-    [[ (-z "${TRAVIS_TAG?}" && "${TRAVIS_BRANCH?}" != master) || "${TRAVIS_PULL_REQUEST?}" == "true" ]] && exit 0;
-    docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}";
-    docker build -t "${DOCKER_BUILD_IMAGE?}" .;
+    if [[ -n "${TRAVIS_TAG?}" || "${TRAVIS_BRANCH?}" == master ]]; then
+      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}"
+      docker build -t "${DOCKER_BUILD_IMAGE?}" .
 
-    version=""
-    if [[ -n "${TRAVIS_TAG?}" ]]; then
-      version="${TRAVIS_TAG?}"
-    else
-      version="$(cat VERSION | tr -d '\n')-${TRAVIS_COMMIT:0:7}";
+      version=""
+      if [[ -n "${TRAVIS_TAG?}" ]]; then
+        version="${TRAVIS_TAG?}"
+      else
+        version="$(cat VERSION | tr -d '\n')-${TRAVIS_COMMIT:0:7}"
+      fi
+
+      docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
+      docker push "${DOCKER_BUILD_IMAGE?}:${version?}"
     fi
-
-    docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}";
-    docker push "${DOCKER_BUILD_IMAGE?}:${version?}";
