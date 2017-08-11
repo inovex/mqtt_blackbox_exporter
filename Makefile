@@ -1,53 +1,25 @@
-SHELL := /bin/bash
+appname := mqtt_blackbox_exporter
 
-# The name of the executable (default is current directory name)
-TARGET := $(shell echo $${PWD\#\#*/})
-.DEFAULT_GOAL: $(TARGET)
+sources = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+artifact_version = $(shell cat VERSION | tr -d '\n')
+build_version = $(artifact_version)-$(shell date +%Y%m%d-%H%M%S)+$(shell git rev-parse --short HEAD)
 
-# These will be provided to the target
-BUILD := "`cat VERSION|tr -d '\n'`-`date +%Y%m%d-%H%M%S`+`git rev-parse --short HEAD`"
+build = GOOS=$(1) GOARCH=$(2) go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)$(3)
+tar = cd build && tar -cvzf $(appname)-$(artifact_version).$(1)-$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
+zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3) && rm $(appname)$(3)
 
-# Use linker flags to provide version/build settings to the target
-LDFLAGS=-ldflags "-X=main.build=$(BUILD)"
+.PHONY: all test clean fmt vendor-deps vendor windows darwin linux
 
-# go source files, ignore vendor directory
-SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
-
-.PHONY: all build clean install uninstall fmt simplify check run test
-
-all: install
-
-$(TARGET): $(SRC)
-	@go build $(LDFLAGS) -o $(TARGET)
-
-build: $(TARGET)
-	@true
-
-clean:
-	@rm -f $(TARGET)
-
-install:
-	@go install $(LDFLAGS)
-
-uninstall: clean
-	@rm $$(which ${TARGET})
-
-fmt:
-	@gofmt -l -w $(SRC)
-
-simplify:
-	@gofmt -s -l -w $(SRC)
-
-check:
-	@test -z $(shell gofmt -l main.go | tee /dev/stderr) || echo "[WARN] Fix formatting issues with 'make fmt'"
-	@for d in $$(go list ./... | grep -v /vendor/); do golint $${d}; done
-	@go tool vet ${SRC}
+all: windows darwin linux
 
 test:
 	./test/run-integration-tests.sh
 
-run: install
-	@$(TARGET)
+clean:
+	rm -rf build/
+
+fmt:
+	@gofmt -l -w $(sources)
 
 vendor-deps:
 	@echo ">> Fetching dependencies"
@@ -57,3 +29,24 @@ vendor: vendor-deps
 	rm -r vendor/
 	${GOPATH}/bin/trash -u
 	${GOPATH}/bin/trash
+
+##### LINUX #####
+linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz
+
+build/$(appname)-$(artifact_version).linux-amd64.tar.gz: $(sources)
+	$(call build,linux,amd64,)
+	$(call tar,linux,amd64)
+
+##### DARWIN (MAC) #####
+darwin: build/$(appname)-$(artifact_version).darwin-amd64.tar.gz
+
+build/$(appname)-$(artifact_version).darwin-amd64.tar.gz: $(sources)
+	$(call build,darwin,amd64,)
+	$(call tar,darwin,amd64)
+
+##### WINDOWS #####
+windows: build/$(appname)-$(artifact_version).windows-amd64.zip
+
+build/$(appname)-$(artifact_version).windows-amd64.zip: $(sources)
+	$(call build,windows,amd64,.exe)
+	$(call zip,windows,amd64,.exe)
