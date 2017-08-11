@@ -25,7 +25,7 @@ after_success:
       if [[ -n "${TRAVIS_TAG?}" ]]; then
         version="${TRAVIS_TAG?}"
       else
-        version="${TRAVIS_COMMIT:0:7}"
+        version="${TRAVIS_COMMIT:0:7}-dev"
       fi
 
       docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
