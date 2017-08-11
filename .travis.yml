@@ -10,14 +10,24 @@ before_install:
   - set -e
 
 script:
-  - make build
+  - make
+  - tar xfvz build/mqtt_blackbox_exporter-*.linux-amd64.tar.gz
+  - ls -lA
   - make test
 
 after_success:
-  - if [[ "${TRAVIS_BRANCH?}" == "master" && "${TRAVIS_PULL_REQUEST?}" == "false" ]]; then
-      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}";
-      commit_id="${TRAVIS_COMMIT:0:7}";
-      docker build -t "${DOCKER_BUILD_IMAGE?}" -t "${DOCKER_BUILD_IMAGE?}:${commit_id?}" .;
-      docker push "${DOCKER_BUILD_IMAGE?}";
-      docker push "${DOCKER_BUILD_IMAGE?}:${commit_id?}";
+  - |
+    if [[ -n "${TRAVIS_TAG?}" || "${TRAVIS_BRANCH?}" == master ]]; then
+      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}"
+      docker build -t "${DOCKER_BUILD_IMAGE?}" .
+
+      version=""
+      if [[ -n "${TRAVIS_TAG?}" ]]; then
+        version="${TRAVIS_TAG?}"
+      else
+        version="$(cat VERSION | tr -d '\n')-${TRAVIS_COMMIT:0:7}"
+      fi
+
+      docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
+      docker push "${DOCKER_BUILD_IMAGE?}:${version?}"
     fi
