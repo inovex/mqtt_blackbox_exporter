@@ -1,21 +1,19 @@
 probes:
-#  - name: mqtt broker SSL
-#    broker_url: ssl://broker.example.com:8883
-#    topic: internal/monitoring/ssl/exporter
-#    client_prefix: test-client-1
-#    username: test
-#    password: xxx
+  - name: mqtt broker SSL
+    broker_url: ssl://broker.mqttdashboard.com:8883
 #    client_cert: /path/to/cert.pem # Use either user/pass auth, certificates or both at the same time.
 #    client_key: /path/to/cert.key
 #    ca_chain: /path/to/ca-chain.pem
-#    messages: 10
-#    interval: 30s
+#    username: test
+#    password: xxx
+    topic: internal/monitoring/ssl/exporter
+    client_prefix: internal.monitoring.ssl.exporter-1
+    messages: 10
+    interval: 30s
 
   - name: mqtt broker NONSSL
-    broker_url: tcp://broker.hivemq.com:1883
+    broker_url: tcp://test.mosquitto.org:1883
     topic: internal/monitoring/nonssl/exporter
-    client_prefix: test-client-2
-    username: test
-    password: xxx
+    client_prefix: internal.monitoring.nonssl.exporter-2
     messages: 10
     interval: 30s
