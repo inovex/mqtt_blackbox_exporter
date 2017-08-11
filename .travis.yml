@@ -12,6 +12,7 @@ before_install:
 script:
   - make
   - tar xfvz build/mqtt_blackbox_exporter-*.linux-amd64.tar.gz
+  - ls -lA
   - make test
 
 after_success:
