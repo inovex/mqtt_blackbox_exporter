@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: mqtt-exporter
+  app: mqtt-exporter
+  tier: mqtt
+metadata:
+  annotations:
+    openshift.io/display-name: Openshift mqtt Exporter deployment template
+    description: >-
+      Deploy a mqtt exporter for Prometheus into a specific namespace together with image stream
+    tags: 'mqtt-exporter'
+  name: mqtt-exporter
+parameters:
+  - name: NAME
+    description: The name of the application
+    displayName: Name
+    required: true
+    value: mqtt-exporter
+  - name: NAMESPACE
+    description: The namespace of the application
+    displayName: Namespace
+    required: true
+  - name: SOURCE_REPOSITORY_URL
+    description: The URL of the repository with your application source code.
+    displayName: Git Repository URL
+    required: true
+    value: 'https://github.com/ivanovaleksandar/mqtt_blackbox_exporter.git'
+  - name: SOURCE_REPOSITORY_REF
+    description: Set the branch name if you are not using master branch
+    displayName: Git Reference    
+    value: master
+    required: false
+objects:
+
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      generation: 2
+      labels:
+        app: mqtt-exporter
+        name: mqtt
+      name: mqtt-exporter
+    spec:
+      dockerImageRepository: inovex/mqtt_blackbox_exporter
+
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: mqtt-exporter
+      name: mqtt-exporter
+    spec:
+      replicas: 1
+      selector:
+        app: mqtt-exporter
+      template:
+        metadata:
+          labels:
+            app: mqtt-exporter
+        spec:
+          containers:
+          - image: docker-registry.default.svc:5000/${NAMESPACE}/mqtt-exporter:v0.2.1
+            imagePullPolicy: IfNotPresent
+            name: mqtt-exporter 
+            ports:
+              - containerPort: 9214
+            command: 
+              - /bin/mqtt_blackbox_exporter
+              - '-config.file'
+              - ./data/config.yaml
+            volumeMounts:
+              - mountPath: /data
+                name: mqtt-config
+            resources: {}
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            - configMap:
+                defaultMode: 420
+                items:
+                  - key: config.yaml
+                    path: config.yaml
+                name: mqtt-config
+              name: mqtt-config      
+      test: false
+      triggers: []
+    status: {}
+
+
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      labels:
+        name: mqtt-config
+        role: exporter
+      name: mqtt-config
+    data:
+      config.yaml: |
+        # Sample config for non SSL deployment
+        probes:
+          - name: mqtt broker NONSSL
+            broker_url: tcp://<application-url>:1883
+            username: <username>
+            password: <password>
+            messages: 10
+            interval: 30s
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        name: mqtt-exporter
+        role: service
+      name: mqtt-exporter
+    spec:
+      ports:
+        - port: 9214
+          targetPort: 9214
+      selector:
+        app: "mqtt-exporter"
