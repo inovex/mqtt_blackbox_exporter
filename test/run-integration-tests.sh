@@ -15,7 +15,7 @@ cleanup() {
 trap cleanup INT TERM
 
 echo "=> Starting exporter"
-./mqtt_blackbox_exporter -config.file config.yaml.dist &
+./build/mqtt_blackbox_exporter -config.file config.yaml.dist &
 service_pid=$!
 
 echo "=> Waiting 5s"
