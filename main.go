@@ -5,14 +5,15 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/yaml.v2"
 )
 
 type config struct {
@@ -39,6 +40,12 @@ var (
 	messagesPublished = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "probe_mqtt_messages_published_total",
+			Help: "Number of published messages.",
+		}, []string{"name", "broker"})
+
+	messagesPublishTimeout = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "probe_mqtt_messages_publish_timeout_total",
 			Help: "Number of published messages.",
 		}, []string{"name", "broker"})
 
@@ -90,7 +97,7 @@ func init() {
 	prometheus.MustRegister(probeCompleted)
 	prometheus.MustRegister(messagesPublished)
 	prometheus.MustRegister(messagesReceived)
-
+	prometheus.MustRegister(messagesPublishTimeout)
 	prometheus.MustRegister(timedoutTests)
 	prometheus.MustRegister(errors)
 }
@@ -130,7 +137,9 @@ func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
 
 func startProbe(probeConfig *probeConfig) {
 	num := probeConfig.Messages
-	testTimeout := 10 * time.Second
+	setupTimeout := probeConfig.TestInterval / 3
+	probeTimeout := probeConfig.TestInterval / 3
+	setupDeadLine := time.Now().Add(setupTimeout)
 	qos := byte(0)
 	t0 := time.Now()
 
@@ -166,32 +175,36 @@ func startProbe(probeConfig *probeConfig) {
 	publisher := mqtt.NewClient(publisherOptions)
 	subscriber := mqtt.NewClient(subscriberOptions)
 
-	if token := publisher.Connect(); token.Wait() && token.Error() != nil {
+	if token := publisher.Connect(); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
 		reportError(token.Error())
 		return
 	}
+
 	defer publisher.Disconnect(5)
 
-	if token := subscriber.Connect(); token.Wait() && token.Error() != nil {
+	if token := subscriber.Connect(); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
 		reportError(token.Error())
 		return
 	}
 	defer subscriber.Disconnect(5)
 
-	if token := subscriber.Subscribe(probeConfig.Topic, qos, nil); token.Wait() && token.Error() != nil {
+	if token := subscriber.Subscribe(probeConfig.Topic, qos, nil); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
 		reportError(token.Error())
 		return
 	}
 	defer subscriber.Unsubscribe(probeConfig.Topic)
 
-	timeout := time.After(testTimeout)
+	probeDeadline := time.Now().Add(probeTimeout)
+	timeout := time.After(probeTimeout)
 	timeoutTriggered := false
 	receiveCount := 0
 
 	for i := 0; i < num; i++ {
 		text := fmt.Sprintf("this is msg #%d!", i)
 		token := publisher.Publish(probeConfig.Topic, qos, false, text)
-		token.Wait()
+		if !token.WaitTimeout(probeDeadline.Sub(time.Now())) {
+			messagesPublishTimeout.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
+		}
 		messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 	}
 
