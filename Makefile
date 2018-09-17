@@ -12,7 +12,7 @@ zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3
 
 all: windows darwin linux
 
-build/$(appname):
+build/$(appname): $(sources)
 	go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)
 
 test: build/$(appname)
