@@ -216,7 +216,6 @@ func startProbe(probeConfig *probeConfig) {
 
 	probeDeadline := time.Now().Add(probeTimeout)
 	timeout := time.After(probeTimeout)
-	timeoutTriggered := false
 	receiveCount := 0
 
 	for i := 0; i < num; i++ {
@@ -228,14 +227,14 @@ func startProbe(probeConfig *probeConfig) {
 		messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 	}
 
-	for receiveCount < num && !timeoutTriggered {
+	for receiveCount < num {
 		select {
 		case <-queue:
 			receiveCount++
 			messagesReceived.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 		case <-timeout:
 			timedoutTests.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
-			timeoutTriggered = true
+			return
 		}
 	}
 }
