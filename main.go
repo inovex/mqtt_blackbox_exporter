@@ -135,6 +135,30 @@ func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
 	}
 }
 
+func connectClient(probeConfig *probeConfig, timeout time.Duration, opts *mqtt.ClientOptions) (mqtt.Client, error) {
+	tlsconfig := NewTlsConfig(probeConfig)
+	baseOptions := mqtt.NewClientOptions()
+	if opts != nil {
+		baseOptions = opts
+	}
+	baseOptions = baseOptions.SetAutoReconnect(false).
+		SetUsername(probeConfig.Username).
+		SetPassword(probeConfig.Password).
+		SetTLSConfig(tlsconfig).
+		AddBroker(probeConfig.Broker)
+	client := mqtt.NewClient(baseOptions)
+	token := client.Connect()
+	success := token.WaitTimeout(timeout)
+	if !success {
+		return nil, fmt.Errorf("reached connect timeout")
+	}
+	if token.Error() != nil {
+		return nil, fmt.Errorf("failed to connect client: %s", token.Error().Error())
+	}
+	return client, nil
+
+}
+
 func startProbe(probeConfig *probeConfig) {
 	num := probeConfig.Messages
 	setupTimeout := probeConfig.TestInterval / 3
@@ -159,31 +183,26 @@ func startProbe(probeConfig *probeConfig) {
 	queue := make(chan [2]string)
 	reportError := func(error error) {
 		errors.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
-		logger.Print(error)
+		logger.Printf("Probe %s: %s", probeConfig.Name, error.Error())
 	}
 
-	tlsconfig := NewTlsConfig(probeConfig)
+	publisherOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-p", probeConfig.ClientPrefix))
 
-	publisherOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-p", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).SetTLSConfig(tlsconfig).AddBroker(probeConfig.Broker)
+	subscriberOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-s", probeConfig.ClientPrefix)).
+		SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
+			queue <- [2]string{msg.Topic(), string(msg.Payload())}
+		})
 
-	subscriberOptions := mqtt.NewClientOptions().SetClientID(fmt.Sprintf("%s-s", probeConfig.ClientPrefix)).SetUsername(probeConfig.Username).SetPassword(probeConfig.Password).SetTLSConfig(tlsconfig).AddBroker(probeConfig.Broker)
-
-	subscriberOptions.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
-		queue <- [2]string{msg.Topic(), string(msg.Payload())}
-	})
-
-	publisher := mqtt.NewClient(publisherOptions)
-	subscriber := mqtt.NewClient(subscriberOptions)
-
-	if token := publisher.Connect(); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
-		reportError(token.Error())
+	publisher, err := connectClient(probeConfig, setupDeadLine.Sub(time.Now()), publisherOptions)
+	if err != nil {
+		reportError(err)
 		return
 	}
-
 	defer publisher.Disconnect(5)
 
-	if token := subscriber.Connect(); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
-		reportError(token.Error())
+	subscriber, err := connectClient(probeConfig, setupDeadLine.Sub(time.Now()), subscriberOptions)
+	if err != nil {
+		reportError(err)
 		return
 	}
 	defer subscriber.Disconnect(5)
