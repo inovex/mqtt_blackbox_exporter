@@ -223,8 +223,9 @@ func startProbe(probeConfig *probeConfig) {
 		token := publisher.Publish(probeConfig.Topic, qos, false, text)
 		if !token.WaitTimeout(probeDeadline.Sub(time.Now())) {
 			messagesPublishTimeout.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
+		} else {
+			messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 		}
-		messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 	}
 
 	for receiveCount < num {
