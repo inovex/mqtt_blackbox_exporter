@@ -89,6 +89,7 @@ var (
 
 	configFile    = flag.String("config.file", "config.yaml", "Exporter configuration file.")
 	listenAddress = flag.String("web.listen-address", ":9214", "The address to listen on for HTTP requests.")
+	enableTrace   = flag.Bool("trace.enable", false, "set this flag to enable mqtt tracing")
 )
 
 func init() {
@@ -245,6 +246,14 @@ func main() {
 
 	if err != nil {
 		logger.Fatalf("Error reading config file: %s", err)
+	}
+
+	mqtt.ERROR = logger
+	mqtt.CRITICAL = logger
+
+	if *enableTrace {
+		mqtt.WARN = logger
+		mqtt.DEBUG = logger
 	}
 
 	config := config{}
