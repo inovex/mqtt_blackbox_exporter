@@ -12,7 +12,10 @@ zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3
 
 all: windows darwin linux
 
-test:
+build/$(appname): $(sources)
+	go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)
+
+test: build/$(appname)
 	./test/run-integration-tests.sh
 
 clean:
@@ -21,14 +24,26 @@ clean:
 fmt:
 	@gofmt -l -w $(sources)
 
-vendor-deps:
-	@echo ">> Fetching dependencies"
-	go get github.com/rancher/trash
 
-vendor: vendor-deps
-	rm -r vendor/
-	${GOPATH}/bin/trash -u
-	${GOPATH}/bin/trash
+download-dep:
+	@which dep || go get -u github.com/golang/dep/cmd/dep
+
+Gopkg.lock: | download-dep
+	${GOPATH}/bin/dep ensure --no-vendor
+
+Gopkg.toml: | download-dep
+	${GOPATH}/bin/dep init
+
+vendor-update: Gopkg.toml Gopkg.lock
+	${GOPATH}/bin/dep ensure -update --no-vendor
+	${GOPATH}/bin/dep status
+	@echo "You can apply these updates via 'make apply-vendor-lock' or rollback via 'git checkout -- Gopkg.lock'"
+
+vendor: Gopkg.toml Gopkg.lock
+	rm -rf vendor/
+	${GOPATH}/bin/dep ensure -vendor-only
+	${GOPATH}/bin/dep status
+
 
 ##### LINUX #####
 linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz
