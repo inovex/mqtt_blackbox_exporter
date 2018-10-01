@@ -30,6 +30,32 @@ Binaries are provided on Github, see https://github.com/inovex/mqtt_blackbox_exp
 
 Place the binary somewhere in a ``PATH`` directory and make it executable (``chmod +x mqtt_blackbox_exporter``).
 
+### Deploy on Openshift
+
+Deploy the exporter on Openshift cluster just by running:
+
+```
+oc project <my-project>
+oc process -f https://raw.githubusercontent.com/ivanovaleksandar/mqtt_blackbox_exporter/master/contrib/openshift-template.yaml \
+    -p NAMESPACE=$(oc project -q) \
+    | oc create -f -
+```
+
+This will create `ImageStream`, `Service`, `DeploymentConfig` and `ConfigMap`. The `ConfigMap` keeps the `config.yaml` file that is initiated on start up.  
+
+*NOTE*: Please edit the configuration to point to the correct connection string, username and password that points to the application that you want to export the metrics from.
+
+```
+# Sample config for non SSL deployment
+probes:
+  - name: mqtt broker NONSSL
+    broker_url: tcp://<application-url>:1883
+    username: <username>
+    password: <password>
+    messages: 10
+    interval: 30s
+```
+
 ## Configure
 
 See ``config.yaml.dist`` for a configuration example.
