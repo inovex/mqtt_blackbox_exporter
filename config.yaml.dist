@@ -4,12 +4,28 @@ probes:
 #    client_cert: /path/to/cert.pem # Use either user/pass auth, certificates or both at the same time.
 #    client_key: /path/to/cert.key
 #    ca_chain: /path/to/ca-chain.pem
+#    insecure_skip_verify: false
 #    username: test
 #    password: xxx
     topic: internal/monitoring/ssl/exporter
     client_prefix: internal.monitoring.ssl.exporter-1
     messages: 10
     interval: 30s
+
+
+  - name: mqtt broker INSECURE SSL
+    broker_url: ssl://broker.mqttdashboard.com:8883
+#    client_cert: /path/to/cert.pem # Use either user/pass auth, certificates or both at the same time.
+#    client_key: /path/to/cert.key
+#    ca_chain: /path/to/ca-chain.pem
+#    insecure_skip_verify: true # Don't verify TLS certificate presented by the server. DON'T USE THIS IN PRODUCTION!
+#    username: test
+#    password: xxx
+    topic: internal/monitoring/ssl/exporter
+    client_prefix: internal.monitoring.ssl.exporter-1
+    messages: 10
+    interval: 30s
+
 
   - name: mqtt broker NONSSL
     broker_url: tcp://test.mosquitto.org:1883

@@ -21,17 +21,18 @@ type config struct {
 }
 
 type probeConfig struct {
-	Name         string        `yaml:"name"`
-	Broker       string        `yaml:"broker_url"`
-	Topic        string        `yaml:"topic"`
-	ClientPrefix string        `yaml:"client_prefix"`
-	Username     string        `yaml:"username"`
-	Password     string        `yaml:"password"`
-	ClientCert   string        `yaml:"client_cert"`
-	ClientKey    string        `yaml:"client_key"`
-	CAChain      string        `yaml:"ca_chain"`
-	Messages     int           `yaml:"messages"`
-	TestInterval time.Duration `yaml:"interval"`
+	Name               string        `yaml:"name"`
+	Broker             string        `yaml:"broker_url"`
+	Topic              string        `yaml:"topic"`
+	ClientPrefix       string        `yaml:"client_prefix"`
+	Username           string        `yaml:"username"`
+	Password           string        `yaml:"password"`
+	ClientCert         string        `yaml:"client_cert"`
+	ClientKey          string        `yaml:"client_key"`
+	CAChain            string        `yaml:"ca_chain"`
+	InsecureSkipVerify bool          `yaml:"insecure_skip_verify"`
+	Messages           int           `yaml:"messages"`
+	TestInterval       time.Duration `yaml:"interval"`
 }
 
 var build string
@@ -130,7 +131,9 @@ func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
 		ClientAuth: tls.NoClientCert,
 		// InsecureSkipVerify = verify that cert contents
 		// match server. IP matches what is in cert etc.
-		InsecureSkipVerify: false,
+		// If you set this to true, you basically trust any server
+		// presenting an SSL cert to you and rendering SSL useless.
+		InsecureSkipVerify: probeConfig.InsecureSkipVerify,
 		// Certificates = list of certs client sends to server.
 		Certificates: []tls.Certificate{cert},
 	}
