@@ -1,35 +1,35 @@
 probes:
-  - name: mqtt broker SSL
-    broker_url: ssl://broker.mqttdashboard.com:8883
+#  - name: name of the probe
+#    broker_url: ssl://iot.eclipse.org:8883
 #    client_cert: /path/to/cert.pem # Use either user/pass auth, certificates or both at the same time.
 #    client_key: /path/to/cert.key
 #    ca_chain: /path/to/ca-chain.pem
 #    insecure_skip_verify: false
 #    username: test
 #    password: xxx
-    topic: internal/monitoring/ssl/exporter
-    client_prefix: internal.monitoring.ssl.exporter-1
+#    topic: internal/monitoring/mqtt-broker-ssl
+#    client_prefix: mqtt_blackbox_exporter.mqtt-broker-ssl
+#    messages: 10
+#    interval: 30s
+
+  - name: mqtt-broker-ssl
+    broker_url: ssl://iot.eclipse.org:8883
+    topic: internal/monitoring/mqtt-broker-ssl
+    client_prefix: mqtt_blackbox_exporter.mqtt-broker-ssl
     messages: 10
     interval: 30s
 
-
-  - name: mqtt broker INSECURE SSL
-    broker_url: ssl://broker.mqttdashboard.com:8883
-#    client_cert: /path/to/cert.pem # Use either user/pass auth, certificates or both at the same time.
-#    client_key: /path/to/cert.key
-#    ca_chain: /path/to/ca-chain.pem
-#    insecure_skip_verify: true # Don't verify TLS certificate presented by the server. DON'T USE THIS IN PRODUCTION!
-#    username: test
-#    password: xxx
-    topic: internal/monitoring/ssl/exporter
-    client_prefix: internal.monitoring.ssl.exporter-1
+  - name: mqtt-broker-insecure-ssl
+    broker_url: ssl://test.mosquitto.org:8883
+    insecure_skip_verify: true # Don't verify TLS certificate presented by the server. DON'T USE THIS IN PRODUCTION!
+    topic: internal/monitoring/mqtt-broker-insecure-ssl
+    client_prefix: mqtt_blackbox_exporter.mqtt-broker-insecure-ssl
     messages: 10
     interval: 30s
 
-
-  - name: mqtt broker NONSSL
-    broker_url: tcp://test.mosquitto.org:1883
-    topic: internal/monitoring/nonssl/exporter
-    client_prefix: internal.monitoring.nonssl.exporter-2
+  - name: mqtt-broker-insecure-nonssl
+    broker_url: tcp://iot.eclipse.org:1883
+    topic: internal/monitoring/mqtt-broker-insecure-nonssl
+    client_prefix: mqtt_blackbox_exporter.mqtt-broker-insecure-nonssl
     messages: 10
     interval: 30s
