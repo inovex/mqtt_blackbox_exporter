@@ -45,7 +45,7 @@ $ ./mqtt_blackbox_exporter -config.file config.yaml
 Using Docker:
 
 ```
-docker run --rm -it -p 9214:9214 -v ${PWD}/:/data/ inovex/mqtt_blackbox_exporter:latest -config.file /data/config.yaml
+docker run --rm -it -p 9214:9214 -v ${PWD}/:/data/ inovex/mqtt_blackbox_exporter:<VERSION> -config.file /data/config.yaml
 ```
 
 ```
