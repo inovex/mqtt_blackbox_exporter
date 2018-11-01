@@ -20,6 +20,7 @@ test: build/$(appname)
 
 clean:
 	rm -rf build/
+	rm -rf mqtt_blackbox_exporter
 
 fmt:
 	@gofmt -l -w $(sources)
