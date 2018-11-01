@@ -21,17 +21,18 @@ type config struct {
 }
 
 type probeConfig struct {
-	Name         string        `yaml:"name"`
-	Broker       string        `yaml:"broker_url"`
-	Topic        string        `yaml:"topic"`
-	ClientPrefix string        `yaml:"client_prefix"`
-	Username     string        `yaml:"username"`
-	Password     string        `yaml:"password"`
-	ClientCert   string        `yaml:"client_cert"`
-	ClientKey    string        `yaml:"client_key"`
-	CAChain      string        `yaml:"ca_chain"`
-	Messages     int           `yaml:"messages"`
-	TestInterval time.Duration `yaml:"interval"`
+	Name               string        `yaml:"name"`
+	Broker             string        `yaml:"broker_url"`
+	Topic              string        `yaml:"topic"`
+	ClientPrefix       string        `yaml:"client_prefix"`
+	Username           string        `yaml:"username"`
+	Password           string        `yaml:"password"`
+	ClientCert         string        `yaml:"client_cert"`
+	ClientKey          string        `yaml:"client_key"`
+	CAChain            string        `yaml:"ca_chain"`
+	InsecureSkipVerify bool          `yaml:"insecure_skip_verify"`
+	Messages           int           `yaml:"messages"`
+	TestInterval       time.Duration `yaml:"interval"`
 }
 
 var build string
@@ -103,41 +104,59 @@ func init() {
 	prometheus.MustRegister(errors)
 }
 
-// Stolen from https://github.com/shoenig/go-mqtt/blob/master/samples/ssl.go
-func NewTlsConfig(probeConfig *probeConfig) *tls.Config {
-	// Import trusted certificates from CAChain - purely for verification - not sent to TLS server
-	certpool := x509.NewCertPool()
-	pemCerts, err := ioutil.ReadFile(probeConfig.CAChain)
-	if err == nil {
-		certpool.AppendCertsFromPEM(pemCerts)
-	}
+// newTLSConfig sets up a the go internal tls config from the given probe config.
+func newTLSConfig(probeConfig *probeConfig) (tls.Config, error) {
 
-	// Import client certificate/key pair
-	// If you want the chain certs to be sent to the server, concatenate the leaf,
-	//  intermediate and root into the ClientCert file
-	cert, err := tls.LoadX509KeyPair(probeConfig.ClientCert, probeConfig.ClientKey)
-	if err != nil {
-		return &tls.Config{}
-	}
-
-	// Create tls.Config with desired tls properties
-	return &tls.Config{
+	cfg := tls.Config{
 		// RootCAs = certs used to verify server cert.
-		RootCAs: certpool,
+		RootCAs: nil,
 		// ClientAuth = whether to request cert from server.
 		// Since the server is set up for SSL, this happens
 		// anyways.
 		ClientAuth: tls.NoClientCert,
 		// InsecureSkipVerify = verify that cert contents
 		// match server. IP matches what is in cert etc.
-		InsecureSkipVerify: false,
+		// If you set this to true, you basically trust any server
+		// presenting an SSL cert to you and rendering SSL useless.
+		InsecureSkipVerify: probeConfig.InsecureSkipVerify,
 		// Certificates = list of certs client sends to server.
-		Certificates: []tls.Certificate{cert},
+		Certificates: nil,
 	}
+	// Import trusted certificates from CAChain - purely for verification - not sent to TLS server
+	if probeConfig.CAChain != "" {
+		certpool := x509.NewCertPool()
+		pemCerts, err := ioutil.ReadFile(probeConfig.CAChain)
+		if err != nil {
+			return tls.Config{}, fmt.Errorf("could not read ca_chain pem: %s", err.Error())
+		}
+		certpool.AppendCertsFromPEM(pemCerts)
+		cfg.RootCAs = certpool
+	}
+
+	if probeConfig.ClientCert != "" && probeConfig.ClientKey != "" {
+		// Import client certificate/key pair
+		// If you want the chain certs to be sent to the server, concatenate the leaf,
+		//  intermediate and root into the ClientCert file
+		cert, err := tls.LoadX509KeyPair(probeConfig.ClientCert, probeConfig.ClientKey)
+		if err != nil {
+			return tls.Config{}, fmt.Errorf("could not read client certificate an key: %s", err.Error())
+		}
+		cfg.Certificates = []tls.Certificate{cert}
+	}
+
+	if (probeConfig.ClientCert != "" && probeConfig.ClientKey == "") ||
+		(probeConfig.ClientCert == "" && probeConfig.ClientKey != "") {
+		return tls.Config{}, fmt.Errorf("either ClientCert or ClientKey is set to empty string")
+	}
+
+	return cfg, nil
 }
 
 func connectClient(probeConfig *probeConfig, timeout time.Duration, opts *mqtt.ClientOptions) (mqtt.Client, error) {
-	tlsconfig := NewTlsConfig(probeConfig)
+	tlsconfig, err := newTLSConfig(probeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("could not setup TLS: %s", err.Error())
+	}
 	baseOptions := mqtt.NewClientOptions()
 	if opts != nil {
 		baseOptions = opts
@@ -145,7 +164,7 @@ func connectClient(probeConfig *probeConfig, timeout time.Duration, opts *mqtt.C
 	baseOptions = baseOptions.SetAutoReconnect(false).
 		SetUsername(probeConfig.Username).
 		SetPassword(probeConfig.Password).
-		SetTLSConfig(tlsconfig).
+		SetTLSConfig(&tlsconfig).
 		AddBroker(probeConfig.Broker)
 	client := mqtt.NewClient(baseOptions)
 	token := client.Connect()
