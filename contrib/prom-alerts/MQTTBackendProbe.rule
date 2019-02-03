@@ -1,0 +1,38 @@
+ALERT MQTTBackendProbeFailed
+  IF increase(probe_mqtt_errors_total{job="mqtt_blackbox"}[1m]) > 5 OR absent(probe_mqtt_errors_total{job="mqtt_blackbox"})
+  FOR 1m
+  LABELS {
+    level = "service",
+    severity = "critical",
+  }
+  ANNOTATIONS {
+    summary = 'MQTT probe failed [1m]',
+    description = 'Running MQTT service roundtrip checks at {{ $labels.broker }} (triggering value: {{$value | printf "%.2f"}}, probe name: {{ $labels.name }}, prober: {{ $labels.instance }}) failed.',
+  }
+
+# Notice: we have a timeout of 30 seconds later, but 5 seconds is more than long enough for an slowness alert
+# before we fire an MQTTBackendProbeTimedOut alert
+ALERT MQTTBackendProbeIsSlow
+  IF (rate(probe_mqtt_duration_seconds_sum{job="mqtt_blackbox"}[1m]) / rate(probe_mqtt_duration_seconds_count{job="mqtt_blackbox"}[1m])) > 5
+  FOR 1m
+  LABELS {
+    level = "service",
+    severity = "critical",
+  }
+  ANNOTATIONS {
+    summary = 'MQTT probing is slow [1m]',
+    description = 'Running MQTT service roundtrip checks is slow at {{ $labels.broker }} (triggering value: {{$value | printf "%.2f"}}, probe name: {{ $labels.name }}, prober: {{ $labels.instance }}).',
+  }
+
+# Notice: see also alert MQTTBackendProbeIsSlow
+ALERT MQTTBackendProbeTimedOut
+  IF increase(probe_mqtt_timeouts_total{job="mqtt_blackbox"}[1m]) > 0 or (rate(probe_mqtt_duration_seconds_sum{job="mqtt_blackbox"}[1m]) / rate(probe_mqtt_duration_seconds_count{job="mqtt_blackbox"}[1m])) >= 30 OR absent(probe_mqtt_timeouts_total{job="mqtt_blackbox"})
+  FOR 1m
+  LABELS {
+    level = "service",
+    severity = "critical",
+  }
+  ANNOTATIONS {
+    summary = 'MQTT probe(s) timed out [1m]',
+    description = 'Some MQTT probe tests timed out while checking {{ $labels.broker }} (triggering value: {{$value | printf "%.2f"}}, probe name: {{ $labels.name }}, prober: {{ $labels.instance }}).',
+  }
