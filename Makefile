@@ -4,7 +4,7 @@ sources = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 artifact_version = $(shell cat VERSION | tr -d '\n')
 build_version = $(artifact_version)-$(shell date +%Y%m%d-%H%M%S)+$(shell git rev-parse --short HEAD)
 
-build = GOOS=$(1) GOARCH=$(2) go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)$(3)
+build = GOOS=$(1) GOARCH=$(2) GOARM=$(4) go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)$(3)
 tar = cd build && tar -cvzf $(appname)-$(artifact_version).$(1)-$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
 zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3) && rm $(appname)$(3)
 
@@ -47,11 +47,24 @@ vendor: Gopkg.toml Gopkg.lock
 
 
 ##### LINUX #####
-linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz
+linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz build/$(appname)-$(artifact_version).linux-arm5.tar.gz build/$(appname)-$(artifact_version).linux-arm6.tar.gz build/$(appname)-$(artifact_version).linux-arm7.tar.gz
 
 build/$(appname)-$(artifact_version).linux-amd64.tar.gz: $(sources)
 	$(call build,linux,amd64,)
 	$(call tar,linux,amd64)
+
+build/$(appname)-$(artifact_version).linux-arm5.tar.gz: $(sources)
+	$(call build,linux,arm,,5)
+	$(call tar,linux,arm5)
+
+build/$(appname)-$(artifact_version).linux-arm6.tar.gz: $(sources)
+	$(call build,linux,arm,,6)
+	$(call tar,linux,arm6)
+
+build/$(appname)-$(artifact_version).linux-arm7.tar.gz: $(sources)
+	$(call build,linux,arm,,7)
+	$(call tar,linux,arm7)
+
 
 ##### DARWIN (MAC) #####
 darwin: build/$(appname)-$(artifact_version).darwin-amd64.tar.gz
