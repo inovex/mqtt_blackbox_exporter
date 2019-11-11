@@ -1,3 +1,5 @@
 mqtt_blackbox_exporter
 test/out.log
 build/
+.idea/
+config.yaml
