@@ -1,10 +1,12 @@
 appname := mqtt_blackbox_exporter
 
+GO:=go
+
 sources = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 artifact_version = $(shell cat VERSION | tr -d '\n')
 build_version = $(artifact_version)-$(shell date +%Y%m%d-%H%M%S)+$(shell git rev-parse --short HEAD)
 
-build = GOOS=$(1) GOARCH=$(2) GOARM=$(4) go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)$(3)
+build = GOOS=$(1) GOARCH=$(2) GOARM=$(4) $(GO) build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)$(3)
 tar = cd build && tar -cvzf $(appname)-$(artifact_version).$(1)-$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
 zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3) && rm $(appname)$(3)
 
@@ -13,7 +15,7 @@ zip = cd build && zip $(appname)-$(artifact_version).$(1)-$(2).zip $(appname)$(3
 all: windows darwin linux
 
 build/$(appname): $(sources)
-	go build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)
+	$(GO) build -ldflags "-X=main.build=$(build_version)" -o build/$(appname)
 
 test: build/$(appname)
 	./test/run-integration-tests.sh
