@@ -1,6 +1,9 @@
 # MQTT Blackbox Exporter
 
 [![Build Status](https://travis-ci.org/inovex/mqtt_blackbox_exporter.png?branch=master)](https://travis-ci.org/inovex/mqtt_blackbox_exporter)
+![](https://github.com/inovex/mqtt_blackbox_exporter/workflows/tests/badge.svg)
+![](https://github.com/inovex/mqtt_blackbox_exporter/workflows/linting/badge.svg)
+![](https://github.com/inovex/mqtt_blackbox_exporter/workflows/release/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/inovex/mqtt_blackbox_exporter)](https://goreportcard.com/report/github.com/inovex/mqtt_blackbox_exporter)
 [![Docker Pulls](https://img.shields.io/docker/pulls/inovex/mqtt_blackbox_exporter.svg?maxAge=604800)](https://hub.docker.com/r/inovex/mqtt_blackbox_exporter/)
 
@@ -80,3 +83,8 @@ probe_mqtt_messages_received_total{broker="ssl://mqtt.example.net:8883",name="mq
 probe_mqtt_started_total{broker="ssl://mqtt.example.net:8883",name="mqtt broker SSL"} 64
 ...
 ```
+
+## Release
+
+The release is done automatically by [goreleaser](https://github.com/goreleaser/goreleaser). To release a new version, 
+just set a git tag. Goreleaser run by Github Actions will create the binaries and upload them to the according Github release.
