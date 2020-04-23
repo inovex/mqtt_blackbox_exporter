@@ -213,21 +213,21 @@ func startProbe(probeConfig *probeConfig) {
 			queue <- [2]string{msg.Topic(), string(msg.Payload())}
 		})
 
-	publisher, err := connectClient(probeConfig, setupDeadLine.Sub(time.Now()), publisherOptions)
+	publisher, err := connectClient(probeConfig, time.Until(setupDeadLine), publisherOptions)
 	if err != nil {
 		reportError(err)
 		return
 	}
 	defer publisher.Disconnect(5)
 
-	subscriber, err := connectClient(probeConfig, setupDeadLine.Sub(time.Now()), subscriberOptions)
+	subscriber, err := connectClient(probeConfig, time.Until(setupDeadLine), subscriberOptions)
 	if err != nil {
 		reportError(err)
 		return
 	}
 	defer subscriber.Disconnect(5)
 
-	if token := subscriber.Subscribe(probeConfig.Topic, qos, nil); token.WaitTimeout(setupDeadLine.Sub(time.Now())) && token.Error() != nil {
+	if token := subscriber.Subscribe(probeConfig.Topic, qos, nil); token.WaitTimeout(time.Until(setupDeadLine)) && token.Error() != nil {
 		reportError(token.Error())
 		return
 	}
@@ -240,7 +240,7 @@ func startProbe(probeConfig *probeConfig) {
 	for i := 0; i < num; i++ {
 		text := fmt.Sprintf("this is msg #%d!", i)
 		token := publisher.Publish(probeConfig.Topic, qos, false, text)
-		if !token.WaitTimeout(probeDeadline.Sub(time.Now())) {
+		if !token.WaitTimeout(time.Until(probeDeadline)) {
 			messagesPublishTimeout.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
 		} else {
 			messagesPublished.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
@@ -275,16 +275,16 @@ func main() {
 		mqtt.DEBUG = logger
 	}
 
-	config := config{}
+	cfg := config{}
 
-	err = yaml.Unmarshal(yamlFile, &config)
+	err = yaml.Unmarshal(yamlFile, &cfg)
 	if err != nil {
 		logger.Fatalf("Error parsing config file: %s", err)
 	}
 
 	logger.Printf("Starting mqtt_blackbox_exporter (build: %s)\n", build)
 
-	for _, probe := range config.Probes {
+	for _, probe := range cfg.Probes {
 
 		delay := probe.TestInterval
 		if delay == 0 {
@@ -298,6 +298,10 @@ func main() {
 		}(probe)
 	}
 
+	//nolint:staticcheck
 	http.Handle("/metrics", prometheus.Handler())
-	http.ListenAndServe(*listenAddress, nil)
+	err = http.ListenAndServe(*listenAddress, nil)
+	if err != nil {
+		logger.Fatalf("Failed to serve metrics endpoint")
+	}
 }
