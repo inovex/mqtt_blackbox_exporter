@@ -105,9 +105,9 @@ func init() {
 }
 
 // newTLSConfig sets up a the go internal tls config from the given probe config.
-func newTLSConfig(probeConfig *probeConfig) (tls.Config, error) {
+func newTLSConfig(probeConfig *probeConfig) (*tls.Config, error) {
 
-	cfg := tls.Config{
+	cfg := &tls.Config{
 		// RootCAs = certs used to verify server cert.
 		RootCAs: nil,
 		// ClientAuth = whether to request cert from server.
@@ -127,7 +127,7 @@ func newTLSConfig(probeConfig *probeConfig) (tls.Config, error) {
 		certpool := x509.NewCertPool()
 		pemCerts, err := ioutil.ReadFile(probeConfig.CAChain)
 		if err != nil {
-			return tls.Config{}, fmt.Errorf("could not read ca_chain pem: %s", err.Error())
+			return nil, fmt.Errorf("could not read ca_chain pem: %s", err.Error())
 		}
 		certpool.AppendCertsFromPEM(pemCerts)
 		cfg.RootCAs = certpool
@@ -139,21 +139,21 @@ func newTLSConfig(probeConfig *probeConfig) (tls.Config, error) {
 		//  intermediate and root into the ClientCert file
 		cert, err := tls.LoadX509KeyPair(probeConfig.ClientCert, probeConfig.ClientKey)
 		if err != nil {
-			return tls.Config{}, fmt.Errorf("could not read client certificate an key: %s", err.Error())
+			return nil, fmt.Errorf("could not read client certificate an key: %s", err.Error())
 		}
 		cfg.Certificates = []tls.Certificate{cert}
 	}
 
 	if (probeConfig.ClientCert != "" && probeConfig.ClientKey == "") ||
 		(probeConfig.ClientCert == "" && probeConfig.ClientKey != "") {
-		return tls.Config{}, fmt.Errorf("either ClientCert or ClientKey is set to empty string")
+		return nil, fmt.Errorf("either ClientCert or ClientKey is set to empty string")
 	}
 
 	return cfg, nil
 }
 
 func connectClient(probeConfig *probeConfig, timeout time.Duration, opts *mqtt.ClientOptions) (mqtt.Client, error) {
-	tlsconfig, err := newTLSConfig(probeConfig)
+	tlsConfig, err := newTLSConfig(probeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not setup TLS: %s", err.Error())
 	}
@@ -164,7 +164,7 @@ func connectClient(probeConfig *probeConfig, timeout time.Duration, opts *mqtt.C
 	baseOptions = baseOptions.SetAutoReconnect(false).
 		SetUsername(probeConfig.Username).
 		SetPassword(probeConfig.Password).
-		SetTLSConfig(&tlsconfig).
+		SetTLSConfig(tlsConfig).
 		AddBroker(probeConfig.Broker)
 	client := mqtt.NewClient(baseOptions)
 	token := client.Connect()
