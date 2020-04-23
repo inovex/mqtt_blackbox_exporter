@@ -28,6 +28,8 @@ clean:
 fmt:
 	@gofmt -l -w $(sources)
 
+tidy:
+	go mod tidy
 
 ##### LINUX #####
 linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz build/$(appname)-$(artifact_version).linux-arm5.tar.gz build/$(appname)-$(artifact_version).linux-arm6.tar.gz build/$(appname)-$(artifact_version).linux-arm7.tar.gz
