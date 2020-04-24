@@ -1,6 +1,7 @@
 appname := mqtt_blackbox_exporter
 
 GO:=go
+GO111MODULE=on
 
 sources = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 artifact_version = $(shell cat VERSION | tr -d '\n')
@@ -27,26 +28,8 @@ clean:
 fmt:
 	@gofmt -l -w $(sources)
 
-
-download-dep:
-	@which dep || go get -u github.com/golang/dep/cmd/dep
-
-Gopkg.lock: | download-dep
-	${GOPATH}/bin/dep ensure --no-vendor
-
-Gopkg.toml: | download-dep
-	${GOPATH}/bin/dep init
-
-vendor-update: Gopkg.toml Gopkg.lock
-	${GOPATH}/bin/dep ensure -update --no-vendor
-	${GOPATH}/bin/dep status
-	@echo "You can apply these updates via 'make apply-vendor-lock' or rollback via 'git checkout -- Gopkg.lock'"
-
-vendor: Gopkg.toml Gopkg.lock
-	rm -rf vendor/
-	${GOPATH}/bin/dep ensure -vendor-only
-	${GOPATH}/bin/dep status
-
+tidy:
+	go mod tidy
 
 ##### LINUX #####
 linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz build/$(appname)-$(artifact_version).linux-arm5.tar.gz build/$(appname)-$(artifact_version).linux-arm6.tar.gz build/$(appname)-$(artifact_version).linux-arm7.tar.gz
