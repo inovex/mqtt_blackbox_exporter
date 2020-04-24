@@ -3,3 +3,4 @@ test/out.log
 build/
 .idea/
 config.yaml
+dist
