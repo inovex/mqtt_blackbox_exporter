@@ -32,7 +32,7 @@ tidy:
 	go mod tidy
 
 ##### LINUX #####
-linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz build/$(appname)-$(artifact_version).linux-arm5.tar.gz build/$(appname)-$(artifact_version).linux-arm6.tar.gz build/$(appname)-$(artifact_version).linux-arm7.tar.gz
+linux: build/$(appname)-$(artifact_version).linux-amd64.tar.gz build/$(appname)-$(artifact_version).linux-arm5.tar.gz build/$(appname)-$(artifact_version).linux-arm6.tar.gz build/$(appname)-$(artifact_version).linux-arm7.tar.gz build/$(appname)-$(artifact_version).linux-arm64.tar.gz
 
 build/$(appname)-$(artifact_version).linux-amd64.tar.gz: $(sources)
 	$(call build,linux,amd64,)
@@ -50,6 +50,9 @@ build/$(appname)-$(artifact_version).linux-arm7.tar.gz: $(sources)
 	$(call build,linux,arm,,7)
 	$(call tar,linux,arm7)
 
+build/$(appname)-$(artifact_version).linux-arm64.tar.gz: $(sources)
+	$(call build,linux,arm64)
+	$(call tar,linux,arm64)
 
 ##### DARWIN (MAC) #####
 darwin: build/$(appname)-$(artifact_version).darwin-amd64.tar.gz
