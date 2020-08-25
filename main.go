@@ -242,13 +242,10 @@ func startProbe(probeConfig *probeConfig) {
 	msgPayload := "This is msg %d!"
 	if probeConfig.MessagePayload != "" {
 		msgPayload = probeConfig.MessagePayload
-		// logger.Printf("Using custom message payload: %s", probeConfig.MessagePayload)
 	}
 
 	for i := 0; i < num; i++ {
-		// text := fmt.Sprintf("this is msg #%d!", i)
 		text := fmt.Sprintf(msgPayload, i)
-		logger.Printf("Msg payload: %s", text)
 		token := publisher.Publish(probeConfig.Topic, qos, false, text)
 		if !token.WaitTimeout(time.Until(probeDeadline)) {
 			messagesPublishTimeout.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()
