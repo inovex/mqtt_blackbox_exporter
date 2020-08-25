@@ -33,6 +33,7 @@ type probeConfig struct {
 	InsecureSkipVerify bool          `yaml:"insecure_skip_verify"`
 	Messages           int           `yaml:"messages"`
 	TestInterval       time.Duration `yaml:"interval"`
+	MessagePayload     string        `yaml:"message_payload"`
 }
 
 var build string
@@ -237,8 +238,14 @@ func startProbe(probeConfig *probeConfig) {
 	timeout := time.After(probeTimeout)
 	receiveCount := 0
 
+	// Support for custom message payload
+	msgPayload := "This is msg %d!"
+	if probeConfig.MessagePayload != "" {
+		msgPayload = probeConfig.MessagePayload
+	}
+
 	for i := 0; i < num; i++ {
-		text := fmt.Sprintf("this is msg #%d!", i)
+		text := fmt.Sprintf(msgPayload, i)
 		token := publisher.Publish(probeConfig.Topic, qos, false, text)
 		if !token.WaitTimeout(time.Until(probeDeadline)) {
 			messagesPublishTimeout.WithLabelValues(probeConfig.Name, probeConfig.Broker).Inc()

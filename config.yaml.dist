@@ -10,6 +10,7 @@ probes:
 #    topic: internal/monitoring/mqtt-broker-ssl
 #    client_prefix: mqtt_blackbox_exporter.mqtt-broker-ssl
 #    messages: 10
+#    message_payload: "Could be any string, even with double quotes within, just \"escape the quotes\". Furthermore if you include %d it'll use the increment of the configured number of \"messages\", e.g. 0...10"
 #    interval: 30s
 
   - name: mqtt-broker-ssl
