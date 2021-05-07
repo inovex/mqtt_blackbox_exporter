@@ -23,6 +23,7 @@ type config struct {
 type probeConfig struct {
 	Name               string        `yaml:"name"`
 	Broker             string        `yaml:"broker_url"`
+	SubscribeTopic     string        `yaml:"subscribe_topic"`
 	Topic              string        `yaml:"topic"`
 	ClientPrefix       string        `yaml:"client_prefix"`
 	Username           string        `yaml:"username"`
@@ -228,11 +229,14 @@ func startProbe(probeConfig *probeConfig) {
 	}
 	defer subscriber.Disconnect(5)
 
-	if token := subscriber.Subscribe(probeConfig.Topic, qos, nil); token.WaitTimeout(time.Until(setupDeadLine)) && token.Error() != nil {
+	if probeConfig.SubscribeTopic == "" {
+		probeConfig.SubscribeTopic = probeConfig.Topic
+	}
+	if token := subscriber.Subscribe(probeConfig.SubscribeTopic, qos, nil); token.WaitTimeout(time.Until(setupDeadLine)) && token.Error() != nil {
 		reportError(token.Error())
 		return
 	}
-	defer subscriber.Unsubscribe(probeConfig.Topic)
+	defer subscriber.Unsubscribe(probeConfig.SubscribeTopic)
 
 	probeDeadline := time.Now().Add(probeTimeout)
 	timeout := time.After(probeTimeout)
