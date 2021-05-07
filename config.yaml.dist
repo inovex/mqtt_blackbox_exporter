@@ -7,6 +7,7 @@ probes:
 #    insecure_skip_verify: false
 #    username: test
 #    password: xxx
+#    subscribe_topic: subscribe/internal/monitoring/mqtt-broker-ssl
 #    topic: internal/monitoring/mqtt-broker-ssl
 #    client_prefix: mqtt_blackbox_exporter.mqtt-broker-ssl
 #    messages: 10
