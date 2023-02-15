@@ -13,6 +13,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/yaml.v2"
 )
 
@@ -310,7 +311,7 @@ func main() {
 	}
 
 	//nolint:staticcheck
-	http.Handle("/metrics", prometheus.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 	err = http.ListenAndServe(*listenAddress, nil)
 	if err != nil {
 		logger.Fatalf("Failed to serve metrics endpoint")
